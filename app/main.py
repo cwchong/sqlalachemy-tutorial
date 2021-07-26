@@ -1,4 +1,5 @@
-from flask import Flask, _app_ctx_stack, jsonify, url_for
+from flask import Flask, _app_ctx_stack, jsonify, url_for, request
+from flask.templating import render_template
 from flask_cors import CORS
 from sqlalchemy.orm import scoped_session
 
@@ -22,6 +23,25 @@ def main():
 def show_records():
     records = app.session.query(models.Record).limit(10) # .all()
     return jsonify([record.to_dict() for record in records])
+
+@app.route('/users/')
+def show_users():
+    users = app.session.query(models.User).limit(10) # .all()
+    return jsonify([record.to_dict() for record in users])
+
+@app.route('/register/', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['name']
+        age = request.form['age']
+
+        user = models.User(name=name, age=int(age))
+        app.session.add(user)
+        app.session.commit()
+
+        return 'User added'
+
+    return render_template('register.html')
 
 @app.teardown_appcontext
 def remove_session(*args, **kwargs):
